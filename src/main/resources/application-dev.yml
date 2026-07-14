@@ -1,0 +1,4 @@
+logging:
+  level:
+    com.frilanceos: DEBUG
+    org.hibernate.SQL: DEBUG
