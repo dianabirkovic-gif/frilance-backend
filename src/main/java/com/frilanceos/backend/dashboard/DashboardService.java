@@ -1,8 +1,11 @@
 package com.frilanceos.backend.dashboard;
 
-import com.frilanceos.backend.attention.AttentionItemRepository;
 import com.frilanceos.backend.auth.RoleAccessPolicy;
 import com.frilanceos.backend.auth.Role;
+import com.frilanceos.backend.clients.Client;
+import com.frilanceos.backend.clients.ClientRepository;
+import com.frilanceos.backend.clients.ClientStatus;
+import com.frilanceos.backend.clients.RelativeTimeFormatter;
 import com.frilanceos.backend.common.security.SecurityUser;
 import com.frilanceos.backend.common.tenant.TenantContext;
 import com.frilanceos.backend.contentplan.PostRepository;
@@ -20,11 +23,13 @@ import com.frilanceos.backend.finance.FinanceEntryRepository;
 import com.frilanceos.backend.finance.FinanceEntryType;
 import com.frilanceos.backend.finance.MonthlyGoal;
 import com.frilanceos.backend.finance.MonthlyGoalRepository;
+import com.frilanceos.backend.ledger.EventLogEntry;
 import com.frilanceos.backend.ledger.EventLogEntryRepository;
 import com.frilanceos.backend.team.TeamMemberRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
@@ -34,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -56,20 +62,20 @@ public class DashboardService {
             DayOfWeek.THURSDAY, "Чт",
             DayOfWeek.FRIDAY, "Пт");
 
-    private final AttentionItemRepository attentionItemRepository;
+    private final ClientRepository clientRepository;
     private final PostRepository postRepository;
     private final FinanceEntryRepository financeEntryRepository;
     private final MonthlyGoalRepository monthlyGoalRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final EventLogEntryRepository eventLogEntryRepository;
 
-    public DashboardService(AttentionItemRepository attentionItemRepository,
+    public DashboardService(ClientRepository clientRepository,
                              PostRepository postRepository,
                              FinanceEntryRepository financeEntryRepository,
                              MonthlyGoalRepository monthlyGoalRepository,
                              TeamMemberRepository teamMemberRepository,
                              EventLogEntryRepository eventLogEntryRepository) {
-        this.attentionItemRepository = attentionItemRepository;
+        this.clientRepository = clientRepository;
         this.postRepository = postRepository;
         this.financeEntryRepository = financeEntryRepository;
         this.monthlyGoalRepository = monthlyGoalRepository;
@@ -152,16 +158,36 @@ public class DashboardService {
         return series;
     }
 
+    /**
+     * FR-05 replaces the old directly-seeded {@code attention_item} table:
+     * "needs attention" is now a real signal computed from {@code Client.status}
+     * rather than placeholder data (see backend CLAUDE.md "Known simplifications").
+     * Every client's status here has equal weight, so severity doesn't
+     * distinguish HIGH/MID the way the placeholder data used to — that
+     * gradation would need the richer per-client signal (unpaid invoice,
+     * silent lead, etc.) the same CLAUDE.md note describes as future work.
+     */
     private List<AttentionItemDto> buildAttentionItems(UUID tenantId) {
-        return attentionItemRepository.findByOwnerIdOrderBySeverityAsc(tenantId).stream()
+        return clientRepository.findByOwnerIdAndStatusOrderByNameAsc(tenantId, ClientStatus.ATTENTION).stream()
                 .limit(4)
-                .map(item -> new AttentionItemDto(
-                        item.getSeverity().name(),
-                        item.getTitle(),
-                        item.getSubtitle(),
-                        item.getMetaLabel(),
-                        item.isMetaIsDanger()))
+                .map(client -> {
+                    Optional<EventLogEntry> latestEvent = latestEvent(client);
+                    return new AttentionItemDto(
+                            "MID",
+                            client.getName(),
+                            latestEvent.map(EventLogEntry::getDescription).orElse("—"),
+                            latestEvent.map(entry -> RelativeTimeFormatter.format(entry.getOccurredAt(), Instant.now()))
+                                    .orElse("—"),
+                            true);
+                })
                 .toList();
+    }
+
+    private Optional<EventLogEntry> latestEvent(Client client) {
+        return eventLogEntryRepository
+                .findByOwnerIdAndClientIdOrderByOccurredAtDesc(client.getOwnerId(), client.getId(), PageRequest.of(0, 1))
+                .stream()
+                .findFirst();
     }
 
     private List<ContentPlanDayDto> buildContentPlanWeek(UUID tenantId, LocalDate today) {

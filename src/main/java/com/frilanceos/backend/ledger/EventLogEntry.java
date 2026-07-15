@@ -21,6 +21,10 @@ import java.util.UUID;
 @Table(name = "event_log_entry")
 public class EventLogEntry extends TenantScopedEntity {
 
+    /** Null for events not tied to a specific client (the dashboard's generic feed). */
+    @Column(name = "client_id")
+    private UUID clientId;
+
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
@@ -44,15 +48,20 @@ public class EventLogEntry extends TenantScopedEntity {
     protected EventLogEntry() {
     }
 
-    public EventLogEntry(UUID ownerId, Instant occurredAt, String actorInitials, String actorName,
+    public EventLogEntry(UUID ownerId, UUID clientId, Instant occurredAt, String actorInitials, String actorName,
                           String description, EventTag tag, BigDecimal amount) {
         super(ownerId);
+        this.clientId = clientId;
         this.occurredAt = occurredAt;
         this.actorInitials = actorInitials;
         this.actorName = actorName;
         this.description = description;
         this.tag = tag;
         this.amount = amount;
+    }
+
+    public UUID getClientId() {
+        return clientId;
     }
 
     public Instant getOccurredAt() {

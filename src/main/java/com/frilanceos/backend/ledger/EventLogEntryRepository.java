@@ -8,4 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface EventLogEntryRepository extends JpaRepository<EventLogEntry, UUID> {
 
     List<EventLogEntry> findByOwnerIdOrderByOccurredAtDesc(UUID ownerId, Pageable pageable);
+
+    /** The client card's "Останні події" tab — one client's slice of the shared ledger. */
+    List<EventLogEntry> findByOwnerIdAndClientIdOrderByOccurredAtDesc(UUID ownerId, UUID clientId, Pageable pageable);
 }
