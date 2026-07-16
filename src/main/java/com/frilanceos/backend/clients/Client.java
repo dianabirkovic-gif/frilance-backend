@@ -43,6 +43,12 @@ public class Client extends TenantScopedEntity {
     @Column(name = "contact_role")
     private String contactRole;
 
+    @Column(name = "contact_phone")
+    private String contactPhone;
+
+    @Column(name = "contact_email")
+    private String contactEmail;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ClientStage stage;
@@ -52,7 +58,8 @@ public class Client extends TenantScopedEntity {
 
     public Client(UUID ownerId, String name, String niche, UUID assigneeId, ClientStatus status,
                   String tariffPlan, LocalDate cooperationStartDate, BigDecimal serviceCost,
-                  String contactName, String contactRole, ClientStage stage) {
+                  String contactName, String contactRole, String contactPhone, String contactEmail,
+                  ClientStage stage) {
         super(ownerId);
         this.name = name;
         this.niche = niche;
@@ -63,6 +70,8 @@ public class Client extends TenantScopedEntity {
         this.serviceCost = serviceCost;
         this.contactName = contactName;
         this.contactRole = contactRole;
+        this.contactPhone = contactPhone;
+        this.contactEmail = contactEmail;
         this.stage = stage;
     }
 
@@ -102,13 +111,21 @@ public class Client extends TenantScopedEntity {
         return contactRole;
     }
 
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
     public ClientStage getStage() {
         return stage;
     }
 
     public void update(String name, String niche, UUID assigneeId, ClientStatus status, String tariffPlan,
                         LocalDate cooperationStartDate, BigDecimal serviceCost, String contactName,
-                        String contactRole, ClientStage stage) {
+                        String contactRole, String contactPhone, String contactEmail, ClientStage stage) {
         this.name = name;
         this.niche = niche;
         this.assigneeId = assigneeId;
@@ -118,6 +135,12 @@ public class Client extends TenantScopedEntity {
         this.serviceCost = serviceCost;
         this.contactName = contactName;
         this.contactRole = contactRole;
+        this.contactPhone = contactPhone;
+        this.contactEmail = contactEmail;
         this.stage = stage;
+    }
+
+    public void updateStatus(ClientStatus status) {
+        this.status = status;
     }
 }

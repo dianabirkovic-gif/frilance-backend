@@ -85,7 +85,7 @@ class ClientsIntegrationTest {
         AuthResponse ownerA = registerAgencyOwner();
         UUID ownerAId = jwtService.parse(ownerA.accessToken()).userId();
         clientRepository.save(new Client(ownerAId, "Клієнт A", "Ніша", null, ClientStatus.ACTIVE,
-                null, null, null, null, null, ClientStage.BRIEF));
+                null, null, null, null, null, null, null, ClientStage.BRIEF));
 
         AuthResponse ownerB = registerAgencyOwner();
 
@@ -112,9 +112,9 @@ class ClientsIntegrationTest {
         String smmToken = jwtService.issueAccessToken(smm);
 
         clientRepository.save(new Client(ownerId, "Клієнт СММ", "Ніша", smm.getId(), ClientStatus.ACTIVE,
-                null, null, null, null, null, ClientStage.BRIEF));
+                null, null, null, null, null, null, null, ClientStage.BRIEF));
         clientRepository.save(new Client(ownerId, "Клієнт іншого", "Ніша", null, ClientStatus.ACTIVE,
-                null, null, null, null, null, ClientStage.BRIEF));
+                null, null, null, null, null, null, null, ClientStage.BRIEF));
 
         ResponseEntity<ClientListItemDto[]> response = restTemplate.exchange(
                 url("/api/v1/clients"), HttpMethod.GET, new HttpEntity<>(bearer(smmToken)),

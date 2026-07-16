@@ -32,6 +32,8 @@ public final class ClientResponse {
             String cooperationDurationLabel,
             String contactName,
             String contactRole,
+            String contactPhone,
+            String contactEmail,
             String stage,
             List<ActivityEntryDto> activity
     ) {

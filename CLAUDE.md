@@ -7,6 +7,15 @@ for how to write code in this repo. Read it before adding a module,
 endpoint, or entity — most of it exists because getting it wrong here is
 expensive to unwind later (tenant isolation, migrations, module boundaries).
 
+## Requirements tracking
+
+New product requirements that come up mid-session (a feature ask, a changed
+acceptance criterion, anything not already in the SRS) get recorded in
+`../freelance-all/new-requirements.md` — that file is the running log of
+requirements gathered outside the SRS document, shared across the frontend
+and backend repos. Add an entry there when a new requirement surfaces,
+alongside implementing it.
+
 ## Current state
 
 Implemented: FR-01 (freelancer register/login) and the Overview dashboard

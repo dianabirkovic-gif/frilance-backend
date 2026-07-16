@@ -65,7 +65,7 @@ class ClientServiceTest {
     private Client sampleClient(UUID assigneeId) {
         Client client = new Client(tenantId, "MUSE'23", "Beauty", assigneeId, ClientStatus.ACTIVE, "Преміум",
                 LocalDate.now().minusMonths(2), BigDecimal.valueOf(32000), "Наталія Вовк", "Засновниця",
-                ClientStage.REPORT);
+                "+380501234567", "natalia@example.com", ClientStage.REPORT);
         setEntityId(client, UUID.randomUUID());
         return client;
     }

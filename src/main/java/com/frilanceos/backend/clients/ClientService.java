@@ -8,6 +8,7 @@ import com.frilanceos.backend.clients.dto.ClientResponse.ClientDetailDto;
 import com.frilanceos.backend.clients.dto.ClientResponse.ClientListItemDto;
 import com.frilanceos.backend.clients.dto.CreateClientRequest;
 import com.frilanceos.backend.clients.dto.UpdateClientRequest;
+import com.frilanceos.backend.clients.dto.UpdateClientStatusRequest;
 import com.frilanceos.backend.common.exception.ApiException;
 import com.frilanceos.backend.common.security.SecurityUser;
 import com.frilanceos.backend.common.tenant.TenantContext;
@@ -79,7 +80,7 @@ public class ClientService {
         Client client = new Client(
                 tenantId, request.name(), request.niche(), request.assigneeId(), request.status(),
                 request.tariffPlan(), request.cooperationStartDate(), request.serviceCost(),
-                request.contactName(), request.contactRole(),
+                request.contactName(), request.contactRole(), request.contactPhone(), request.contactEmail(),
                 request.stage() != null ? request.stage() : ClientStage.BRIEF);
         clientRepository.save(client);
         return toDetail(client, LocalDate.now());
@@ -91,7 +92,15 @@ public class ClientService {
         client.update(
                 request.name(), request.niche(), request.assigneeId(), request.status(), request.tariffPlan(),
                 request.cooperationStartDate(), request.serviceCost(), request.contactName(),
-                request.contactRole(), request.stage());
+                request.contactRole(), request.contactPhone(), request.contactEmail(), request.stage());
+        return toDetail(client, LocalDate.now());
+    }
+
+    @Transactional
+    public ClientDetailDto updateClientStatus(SecurityUser currentUser, UUID clientId,
+                                               UpdateClientStatusRequest request) {
+        Client client = findVisibleOrThrow(currentUser, clientId);
+        client.updateStatus(request.status());
         return toDetail(client, LocalDate.now());
     }
 
@@ -163,6 +172,8 @@ public class ClientService {
                 CooperationDurationFormatter.format(client.getCooperationStartDate(), client.getStatus(), today),
                 client.getContactName(),
                 client.getContactRole(),
+                client.getContactPhone(),
+                client.getContactEmail(),
                 client.getStage().name(),
                 activity);
     }
